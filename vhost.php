@@ -1,109 +1,138 @@
 <?php
 /**
- * NOT READY YET
+ * VirtualHost Generator
+ * (For use with Apache 2)
  *
- * @desc       Simple PHP Script to create a VHost template.
- * @author     CodeZeus
- * @version    0.1
- * @usage  $ php vhost.php create <$servername>
- *         $ sudo php vhost.php activate <$servername>
+ * @author Jesse Boyer <hello@jream.com>
+ * @copyright Copyright (c) 2014, Jese Boyer
+ * @license http://opensource.org/licenses/gpl-license.php GNU Public License
+ * @version 0.1
+ *
+ * @usage
+ *     Open a Terminal and follow the instructions after typing:
+ *     $ php vhost.php
  */
+namespace JREAM;
 
-$lines = "--------------------------------------"
+class VirtualHost
+{
 
-$available_commands = ['create', 'activate']
+    protected $address = null;
+    protected $server_name = null;
+    protected $document_root = null;
+    protected $server_path = null;
+    protected $output = null;
 
-# ---------------------------------------------------------------------
-# Default error message
-# ---------------------------------------------------------------------
-function error() {
-
-    print "\nInvalid command: Please provide:"
-    foreach ($available_commands as $cmd) {
-        printf("\t{%s} <$servername>", $cmd);
-    }
-    exit;
-}
-
-# ---------------------------------------------------------------------
-# Prepare the commands
-# ---------------------------------------------------------------------
-if len(sys.argv) < 3:
-    error()
-
-command = sys.argv[1]
-param   = sys.argv[2]
-
-
-if command not in available_commands:
-    error()
-
-# ---------------------------------------------------------------------
-# Creates an apache vhost template
-# ---------------------------------------------------------------------
-function create($servername) {
-
-    print "This will create an Apache2 VirtualHost template."
-    print lines
-
-    if not re.match("^[a-zA-Z]*$", $servername):
-        print "Error: Only alphabetical characters are allowed."
-        sys.exit()
-
-    if len($servername) > 20:
-        print "Error: Your $servername can only be up to 20 characters."
-        sys.exit()
-
-    tpl = Template("""<VirtualHost 127.0.0.1>
-        $servername $$servername
-        DocumentRoot /vagrant/www/$$servername/public
-        ServerPath /$$servername
-    </VirtualHost>
-
-    <Directory "/vagrant/www/$$servername/public">
-        Options Indexes FollowSymLinks
-        AllowOverride All
-        Require all granted
-    </Directory>
-    """)
-
-    output = tpl.safe_substitute({'$servername': $servername})
-    print '\n-- {0}.conf --'.format($servername)
-    print output
-
-    confirm = raw_input("Create the template? (You can modify it once created) [Y/n]?: ")
-    if (confirm is not 'Y') {
-        print "Cancelling."
-        exit;
+    /**
+     * Inits the Chain
+     *
+     * @return void
+     */
+    public function init() {
+        $this->setVirtualHostAddress();
     }
 
-    $filename = $servername + ".conf"
-    $conf = open($filename, "w")
-    conf.write(output)
-    conf.close()
+    protected function setVirtualHostAddress() {
+        echo 'VirtaulHost Address (default=127.0.0.1): ';
+        $this->address = trim(fgets(STDIN));
+        if (!$this->address) {
+            $this->address = '127.0.0.1';
+        }
 
-
-    print "\nFile Created: " . $filename;
-    print "\nTo activate your VHost run: "
-    print "\n$ sudo python vhost.py activate {0}".format($servername)
-}
-
-# ---------------------------------------------------------------------
-# Activates an Apache VHost
-# ---------------------------------------------------------------------
-function activate($servername) {
-
-    if (!$servername) {
-        print("$ sudo <servername> is required.")
-        exit;
+        $this->setServerName();
     }
 
-    passthru("sudo mv $servername.conf /etc/apache2/sites-available");
-    passthru("sudo a2ensite $servername");
-    passthru('sudo service apache2 reload');
-    passthru('cd /vagrant/www');
-    print "To create a new Phalcon project: $ sudo phalcon project " . $servername;
+    protected function setServerName() {
+        echo 'VirtualHost ServerName (example: unicorn): ';
+        $this->server_name = trim(fgets(STDIN));
+        if (!$this->server_name) {
+            echo "[Error]: You must provide a server name!\n";
+            $this->setServerName();
+        }
+        $this->setDocumentRoot();
+    }
+
+    protected function setDocumentRoot() {
+        $default_document_root = "/vagrant/www/{$this->server_name}/public";
+        echo "VirtualHost DocumentRoot (default=$default_document_root): ";
+        $this->document_root = trim(fgets(STDIN));
+        if (!$this->document_root) {
+            $this->document_root = $default_document_root;
+        }
+        $this->setServerPath();
+    }
+
+    protected function setServerPath() {
+        echo "Use VirtualHost ServerPath? (For Multiple VHosts) (default=y) [y/n]:";
+        $this->server_path = trim(fgets(STDIN));
+        echo $this->server_path;
+        $this->server_path = sprintf("ServerPath /%s", $this->server_name);
+        echo $this->server_path;
+
+        if ($this->server_path == 'n') {
+            $this->server_path = '';
+        }
+
+        echo $this->server_path;
+        $this->confirmOutput();
+    }
+
+    protected function confirmOutput() {
+        $this->output = "
+        <VirtualHost {$this->address}>
+            ServerName {$this->server_name}
+            DocumentRoot {$this->document_root}
+            {$this->server_path}
+        </VirtualHost>
+
+        <Directory \"{$this->document_root}\">
+            Options Indexes FollowSymLinks
+            AllowOverride All
+            Require all granted
+        </Directory>\n
+        ";
+
+        echo "\nThe following will be the output of your {$this->server_name}.conf file: \n";
+        echo "\n-------------------";
+
+        echo $this->output;
+
+        echo "\nSite URL: " . $this->address . $this->server_path;
+        echo "\nPublic Directory: " . $this->document_root;
+
+        echo "\nDoes the above look correct? (startover=n) [y/n]:";
+        $correct = trim(fgets(STDIN));
+        echo $correct;
+        if ($correct == 'n') {
+            $this->setVirtualHostAddress();
+            return;
+        }
+
+        $this->confirmWriteFile();
+    }
+
+    private function confirmWriteFile() {
+        echo "\nWould you like to save the file in the output/ directory? (default=y) [y/n]:";
+        $boolean = trim(fgets(STDIN));
+        if ($boolean == 'n') {
+            return;
+        }
+
+        $fp = fopen('output/' . $this->server_name . '.conf', 'w');
+        fwrite($fp, $this->output);
+        fclose($fp);
+
+        echo "\n\nFile has been saved to {$this->server_name}.conf\n\n";
+    }
+
 }
 
-# End of File
-# ---------------------------------------------------------------------
+
+if (!count(debug_backtrace()))
+{
+    $vhost = new \JREAM\VirtualHost();
+    $vhost->init();
+}
+
+// End of File
+// ---------------------------------------------------------------------
