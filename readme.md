@@ -1,5 +1,8 @@
-# VHost Generator
-This is a simple PHP CLI Script to be run to generate a VirtualHost. It requires Apache 2 which uses the `Require all granted` Directory setting. The default setting is to `AllowOverride All` so if you have a core configuration which does not allow that, you will need to turn it off in order to get your `.htaccess` files overwriting if you are using them.
+# VirtualHost Generator
+
+This is a simple PHP CLI Script to generate an Apache VirtualHost on the fly. This is primarily useful for development environments.
+
+This requires Apache 2 which uses the `Require all granted` Directory setting. The default directory setting is to `AllowOverride All` for your `.htaccess` files if you use them. Otherwise you can edit the outputted file.
 
 @author [JREAM](http://jream.com)
 
