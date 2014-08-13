@@ -97,7 +97,7 @@ class VirtualHost
 
         echo $this->output;
 
-        echo "\nSite URL: " . $this->address . $this->server_path;
+        echo "\nSite URL: {$this->address}/{$this->server_name}";
         echo "\nPublic Directory: " . $this->document_root;
 
         echo "\nDoes the above look correct? (startover=n) [y/n]:";
