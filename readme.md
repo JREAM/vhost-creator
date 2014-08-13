@@ -1,10 +1,10 @@
 # VirtualHost Generator
+Author [JREAM](http://jream.com)
 
 This is a simple PHP CLI Script to generate an Apache VirtualHost on the fly. This is primarily useful for development environments.
 
 This requires Apache 2 which uses the `Require all granted` Directory setting. The default directory setting is to `AllowOverride All` for your `.htaccess` files if you use them. Otherwise you can edit the outputted file.
 
-@author [JREAM](http://jream.com)
 
 ## Usage
 In your Terminal run the following command and follow the instructions:
