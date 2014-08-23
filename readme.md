@@ -1,5 +1,6 @@
 # VirtualHost Generator
-Author [JREAM](http://jream.com)
+
+Author [Jesse Boyer (JREAM)](http://jream.com)
 
 This is a simple PHP CLI Script to generate an Apache VirtualHost on the fly. This is primarily useful for development environments.
 
